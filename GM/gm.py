@@ -11,15 +11,12 @@ display = pygame.display
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 win = display.set_mode( (WIN_WIDTH, WIN_HEIGTH), HWSURFACE|DOUBLEBUF|FULLSCREEN, 32)
 
-print(help(HWSURFACE))
-
 RED = (0xFF, 0, 0)
 BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
 DELTA = 10**(-4.45)
-
 
 def rangeS(a, b):
 	return ( (a['x']-b['x'])**2 + (a['y']-b['y'])**2 )
