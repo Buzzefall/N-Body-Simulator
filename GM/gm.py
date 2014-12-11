@@ -9,14 +9,16 @@ WIN_WIDTH, WIN_HEIGTH = 1920, 1080
 pygame.init()
 display = pygame.display
 os.environ['SDL_VIDEO_CENTERED'] = '1'
-win = display.set_mode( (WIN_WIDTH, WIN_HEIGTH), FULLSCREEN, 32)
+win = display.set_mode( (WIN_WIDTH, WIN_HEIGTH), HWSURFACE|DOUBLEBUF|FULLSCREEN, 32)
+
+print(help(HWSURFACE))
 
 RED = (0xFF, 0, 0)
 BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
-DELTA = 10**(-4.5)
+DELTA = 10**(-4.45)
 
 
 def rangeS(a, b):
@@ -110,11 +112,11 @@ def apply_forces(bodies):
 			#pygame.draw.circle(win, color, (round(bodies[i]['x']), round(bodies[i]['y'])), radius[i], radius[i])
 			putPoint(win, bodies[i], color)
 			#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
-			if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
-				points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
-				pygame.draw.polygon(win, (255,255,255), points, 1)
-				pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
-		display.update()
+			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
+				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
+				#pygame.draw.polygon(win, (255,255,255), points, 1)
+				#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
+		display.flip()
 		
 	return forces
 def generate_bodies(place, area, body_amount):
