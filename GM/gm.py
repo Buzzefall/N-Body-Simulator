@@ -110,7 +110,7 @@ def apply_forces(bodies):
 			bodies[i]['z'] += DELTA*velocity[i]['z']
 
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
-			bodies[i]['radius'] = int(10 / numpy.sqrt(rangeS(bodies[i], VIEW_POINT)) * 1500)
+			bodies[i]['radius'] = int(10 / numpy.sqrt(rangeS(bodies[i], VIEW_POINT)) * 1200)
 			#bodies = qs(bodies) # Сортировка по очереди прорисовки(по расстоянию)
 
 			color = (255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)), 0, 255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)))
