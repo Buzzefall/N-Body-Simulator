@@ -21,10 +21,11 @@ def right_round(center, radius, direction, speed, time, dots = [], phase = []):
 			else:	dots[i] = (dots[i][0], dots[i][1] * 0.999)
 		current_range = sqrt( abs(center[0] - dots[i][0])**2 + abs(center[1] - dots[i][1])**2 )
 		dots[i] = (
-			center[0] + (-1)**(direction)*current_range*cos(phase[i] + time * speed),
-			center[1] - (-1)**(direction)*current_range*sin(phase[i] + time * speed)
+			center[0] + current_range*cos(phase[i] + time * speed),
+			center[1] + current_range*sin(phase[i] + time * speed)
 			)
 	return dots
+
 def whirl(center, radius, direction, speed, dots = []):
 	phase = [ 1 for i in range(len(dots))]
 	for i in range(len(dots)):

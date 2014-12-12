@@ -1,8 +1,10 @@
 import os
 import pygame
-from math import sqrt, cos, sin, tan, pi, log
-from random import randrange
+import numpy
+
 from pygame.locals import *
+from random import randrange
+from math import sqrt, cos, sin, tan, pi, log
 
 WIN_WIDTH, WIN_HEIGTH = 1920, 1080
 
@@ -10,6 +12,8 @@ pygame.init()
 display = pygame.display
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 win = display.set_mode( (WIN_WIDTH, WIN_HEIGTH), HWSURFACE|DOUBLEBUF|FULLSCREEN, 32)
+
+VIEW_POINT = {'x': WIN_WIDTH/2, 'y': WIN_HEIGTH/2, 'z': - WIN_WIDTH/2}
 
 RED = (0xFF, 0, 0)
 BLUE = (0, 0, 0xFF)
@@ -19,7 +23,7 @@ G = 6.67*10**(-11)
 DELTA = 10**(-4.45)
 
 def rangeS(a, b):
-	return ( (a['x']-b['x'])**2 + (a['y']-b['y'])**2 )
+	return ( (a['x']-b['x'])**2 + (a['y']-b['y'])**2 + (a['z']-b['z'])**2 )
 
 def putPoint(window, point, color):
 	window.set_at( (round(point['x']), round(point['y'])), color )
@@ -33,8 +37,11 @@ def putPoint(window, point, color):
 
 def apply_forces(bodies):
 	quantity = len(bodies)
-	velocity = [{'x': cos(i)*4*pi, 'y': -sin(i)*4*pi} for i in range(len(bodies))]
-	boost = [{'x': 0, 'y': 0} for i in range(len(bodies))]
+	velocity = ([ 
+				{'x': cos(i)*4*pi, 'y': -sin(i)*4*pi, 'z': sin(i)*4*pi }
+				for i in range(len(bodies)) ] )
+
+	boost = [{'x': 0, 'y': 0, 'z': 0} for i in range(len(bodies))]
 
 	temp_force = 0
 	Rfract = 0
@@ -43,8 +50,7 @@ def apply_forces(bodies):
 
 	
 	bodies[0]['mass'] = SUPERMASS
-	radius = [int(log(bodies[i]['mass'], 500)*3.0) for i in range(quantity)]	
-	radius[0] = round(radius[0]*1.2)
+	bodies[0]['radius'] = round(bodies[0]['radius']*1.2)
 
 	time = 0
 	color = RED
@@ -62,12 +68,21 @@ def apply_forces(bodies):
 				r2 = rangeS(bodies[i], bodies[jit])
 				Rfract = 1/r2
 				temp_force = -G*bodies[i]['mass']*bodies[jit]['mass'] * Rfract
-				cosY = (bodies[i]['y'] - bodies[jit]['y']) / sqrt(Rfract) 
-				cosX = (bodies[i]['x'] - bodies[jit]['x']) / sqrt(Rfract) 
-				boost[i]['x'] 	+= temp_force * cosX / bodies[i]['mass']
-				boost[i]['y'] 	+= temp_force * cosY / bodies[i]['mass']
+				cosY = (bodies[i]['y'] - bodies[jit]['y']) / sqrt(Rfract) # Направляющие косинусы базисов X, Y, Z
+				cosX = (bodies[i]['x'] - bodies[jit]['x']) / sqrt(Rfract)
+				cosZ = (bodies[i]['z'] - bodies[jit]['z']) / sqrt(Rfract)
+
+				boost[i]['x'] 	+= temp_force * cosX / bodies[i]['mass'] # Подсчет взаимодействий тел в виде 
+				boost[i]['y'] 	+= temp_force * cosY / bodies[i]['mass'] # накопления ускорения
+				boost[i]['z'] 	+= temp_force * cosZ / bodies[i]['mass']
+
 				boost[jit]['x'] -= temp_force * cosX / bodies[jit]['mass']
 				boost[jit]['y'] -= temp_force * cosY / bodies[jit]['mass']
+				boost[jit]['z'] -= temp_force * cosZ / bodies[jit]['mass']
+
+				
+
+				# Сверхмассивное тело в центре
 
 				#r2 = rangeS(bodies[i], center)
 				#Rfract = 1/r2
@@ -83,9 +98,12 @@ def apply_forces(bodies):
 
 			velocity[i]['x'] += DELTA*boost[i]['x']
 			velocity[i]['y'] += DELTA*boost[i]['y']
+			velocity[i]['z'] += DELTA*boost[i]['z']
 			bodies[i]['x'] += DELTA*velocity[i]['x']
 			bodies[i]['y'] += DELTA*velocity[i]['y']
-			boost[i]['x'], boost[i]['y'] = 0, 0
+			bodies[i]['z'] += DELTA*velocity[i]['z']
+
+			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
 			"""
 			for j in range(quantity - 1):
 				if j == i: continue
@@ -105,14 +123,21 @@ def apply_forces(bodies):
 					del boost[j]
 					break
 			"""
+			radius = rangeS(bodies[i], VIEW_POINT)
 			color = (255*abs(cos(velocity[i]['x']*0.0000021)), 0, 0)
-			#pygame.draw.circle(win, color, (round(bodies[i]['x']), round(bodies[i]['y'])), radius[i], radius[i])
 			putPoint(win, bodies[i], color)
 			#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
+			pygame.draw.circle(
+				win, 
+				color, 
+				round(bodies[i]['x']), 
+				round(bodies[i]['y']),
+				radius, radius)
+				
 			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
 				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
 				#pygame.draw.polygon(win, (255,255,255), points, 1)
-				#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
+
 		display.flip()
 		
 	return forces
@@ -121,11 +146,14 @@ def generate_bodies(place, area, body_amount):
 	for i in range(body_amount):
 		radiusX = (randrange(2*area) - area)*1.25
 		radiusY = (randrange(2*area) - area)*1.25
+		radiusZ = (randrange(2*area) - area)*1.25
 		bodies.append	(
 							{															
-							'x': place[0] + radiusX*cos(i*0.1), 		
-							'y': place[1] - radiusY*sin(i*0.1), 		
-							'mass': randrange(10**avg_mass_order, 10**(avg_mass_order*2)) 
+							'x': place[0] + radiusX*cos(i*0.1),
+							'y': place[1] + radiusY*sin(i*0.1), 		
+							'z': place[0] + radiusZ*sin(i*0.1), 		
+							'mass': randrange(10**avg_mass_order, 10**(avg_mass_order*2)),
+							'radius': 0
 							}
 						)
 	return bodies
