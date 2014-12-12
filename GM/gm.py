@@ -13,7 +13,7 @@ display = pygame.display
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 win = display.set_mode( (WIN_WIDTH, WIN_HEIGTH), HWSURFACE|DOUBLEBUF|FULLSCREEN, 32)
 
-VIEW_POINT = {'x': WIN_WIDTH/2, 'y': WIN_HEIGTH/2, 'z': - WIN_WIDTH/2}
+VIEW_POINT = {'x': WIN_WIDTH/2, 'y': WIN_HEIGTH/2, 'z': WIN_WIDTH}
 
 RED = (0xFF, 0, 0)
 BLUE = (0, 0, 0xFF)
@@ -21,6 +21,12 @@ GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
 DELTA = 10**(-4.45)
+
+#def rangeS(a, b):
+	#return ( 	
+			#numpy.abs(a['x'], b['x'])**2 + 
+			#numpy.abs(a['y'], b['y'])**2 + 
+			#numpy.abs(a['z'], b['z'])**2 )
 
 def rangeS(a, b):
 	return ( (a['x']-b['x'])**2 + (a['y']-b['y'])**2 + (a['z']-b['z'])**2 )
@@ -104,36 +110,18 @@ def apply_forces(bodies):
 			bodies[i]['z'] += DELTA*velocity[i]['z']
 
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
-			"""
-			for j in range(quantity - 1):
-				if j == i: continue
-				if rangeS(bodies[i], bodies[j]) <= 1:
-					bodies[i]['mass'] += bodies[j]['mass']
-					velocity[i]['x'] += velocity[j]['x']
-					velocity[i]['y'] += velocity[j]['y']
-					radius[i] = int(log(bodies[i]['mass'], 200)*3.0)
-					quantity -= 1
-					if i > j:
-						i -= 1
-					else:
-						j -= 1
-					del radius[j]
-					del bodies[j]
-					del velocity[j]
-					del boost[j]
-					break
-			"""
-			radius = rangeS(bodies[i], VIEW_POINT)
-			color = (255*abs(cos(velocity[i]['x']*0.0000021)), 0, 0)
-			putPoint(win, bodies[i], color)
+			
+			radius = int(bodies[i]['radius'] / numpy.sqrt(rangeS(bodies[i], VIEW_POINT)) * 1500)
+			color = (255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)), 0, 0)
+
 			#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
+			putPoint(win, bodies[i], color)
 			pygame.draw.circle(
 				win, 
 				color, 
-				round(bodies[i]['x']), 
-				round(bodies[i]['y']),
-				radius, radius)
-				
+				(round(bodies[i]['x']), round(bodies[i]['y'])),
+				radius, 1)
+			pygame.draw.aaline(win, GREEN, [0, 50],[50, 80], True)
 			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
 				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
 				#pygame.draw.polygon(win, (255,255,255), points, 1)
@@ -153,7 +141,7 @@ def generate_bodies(place, area, body_amount):
 							'y': place[1] + radiusY*sin(i*0.1), 		
 							'z': place[0] + radiusZ*sin(i*0.1), 		
 							'mass': randrange(10**avg_mass_order, 10**(avg_mass_order*2)),
-							'radius': 0
+							'radius': 10
 							}
 						)
 	return bodies
@@ -163,5 +151,6 @@ AMOUNT = 100
 
 bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
 apply_forces(bodies)
+
 
 
