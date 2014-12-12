@@ -2,6 +2,8 @@ import os
 import pygame
 import numpy
 
+from Quick import *
+
 from pygame.locals import *
 from random import randrange
 from math import sqrt, cos, sin, tan, pi, log
@@ -20,7 +22,7 @@ BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
-DELTA = 10**(-4.45)
+DELTA = 10**(-4.5)
 
 #def rangeS(a, b):
 	#return ( 	
@@ -86,8 +88,6 @@ def apply_forces(bodies):
 				boost[jit]['y'] -= temp_force * cosY / bodies[jit]['mass']
 				boost[jit]['z'] -= temp_force * cosZ / bodies[jit]['mass']
 
-				
-
 				# Сверхмассивное тело в центре
 
 				#r2 = rangeS(bodies[i], center)
@@ -110,25 +110,30 @@ def apply_forces(bodies):
 			bodies[i]['z'] += DELTA*velocity[i]['z']
 
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
-			
-			radius = int(bodies[i]['radius'] / numpy.sqrt(rangeS(bodies[i], VIEW_POINT)) * 1500)
-			color = (255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)), 0, 0)
+			bodies[i]['radius'] = int(10 / numpy.sqrt(rangeS(bodies[i], VIEW_POINT)) * 1500)
+			#bodies = qs(bodies) # Сортировка по очереди прорисовки(по расстоянию)
+
+			color = (255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)), 0, 255*abs(cos(rangeS(bodies[i], VIEW_POINT)*0.00000055)))
 
 			#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
 			putPoint(win, bodies[i], color)
 			pygame.draw.circle(
 				win, 
+				0, 
+				(round(bodies[i]['x']), round(bodies[i]['y'])),
+				bodies[i]['radius'], 0)
+			pygame.draw.circle(
+				win, 
 				color, 
 				(round(bodies[i]['x']), round(bodies[i]['y'])),
-				radius, 1)
-			pygame.draw.aaline(win, GREEN, [0, 50],[50, 80], True)
+				bodies[i]['radius'], 1)
 			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
 				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
 				#pygame.draw.polygon(win, (255,255,255), points, 1)
 
 		display.flip()
 		
-	return forces
+	return 0
 def generate_bodies(place, area, body_amount):
 	bodies = []
 	for i in range(body_amount):
@@ -146,7 +151,7 @@ def generate_bodies(place, area, body_amount):
 						)
 	return bodies
 avg_mass_order = 6
-SUPERMASS = 10**18
+SUPERMASS = 10**18.5
 AMOUNT = 100
 
 bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
