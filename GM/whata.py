@@ -56,6 +56,7 @@ def apply_forces(bodies):
 	center = { 'x': WIN_WIDTH/2, 'y': WIN_HEIGTH/2}
 	center_mass = 10**18
 
+	
 	bodies[0]['mass'] = SUPERMASS
 	bodies[0]['radius'] = round(bodies[0]['radius']*1.2)
 
@@ -63,7 +64,7 @@ def apply_forces(bodies):
 	color = RED
 	win.fill(0)
 	while (1):
-		time += 0.1
+		time += 0.001
 		for event in pygame.event.get():
 			if (event.type == KEYDOWN) and (event.key == K_ESCAPE):
 				pygame.quit()
@@ -110,8 +111,11 @@ def apply_forces(bodies):
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
 
 			Range = rangeS(bodies[i], VIEW_POINT)
-			bodies[i]['radius'] = int(7 / numpy.sqrt(Range) * 2000)
-			color = (255, 0, 255)
+			bodies[i]['radius'] = int(10 / numpy.sqrt(Range) * 1120)
+			color = (	255*abs(cos(100000 / Range)), 
+						0,
+						255*abs(cos(100000 / Range))
+					)
 
 		qs(bodies, velocity) 			# Сортировка по очереди прорисовки(по расстоянию)
 
@@ -131,7 +135,6 @@ def apply_forces(bodies):
 			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
 				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
 				#pygame.draw.polygon(win, (255,255,255), points, 1)
-		whirl(center, radius, 0, spd, time, points)
 
 		display.flip()
 		
@@ -155,14 +158,8 @@ def generate_bodies(place, area, body_amount):
 avg_mass_order = 6
 SUPERMASS = 10**18.5
 AMOUNT = 100
-CENTER = (WIN_WIDTH/2, WIN_HEIGTH/2)
 
-points = [(    
-		(sin(i)*(randrange(300)+1)*10 + 1 - CENTER[0]), 
-		(cos(i)*(randrange(300)+1)*10 + 1 - CENTER[1])
-		) for i in range(3000)]
-
-bodies = generate_bodies( CENTER, WIN_HEIGTH/2, AMOUNT)
+bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
 apply_forces(bodies)
 
 
