@@ -28,6 +28,7 @@ def part(lst, deps, left, right):
 
     pivot = i - 1
     lst[left], lst[pivot] = lst[pivot], lst[left]
+
     lst[left]['x'], lst[pivot]['x'] = lst[pivot]['x'], lst[left]['x']
     lst[left]['y'], lst[pivot]['y'] = lst[pivot]['y'], lst[left]['y']
     lst[left]['z'], lst[pivot]['z'] = lst[pivot]['z'], lst[left]['z']
