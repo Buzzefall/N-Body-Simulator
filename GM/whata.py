@@ -111,30 +111,30 @@ def apply_forces(bodies):
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
 
 			Range = rangeS(bodies[i], VIEW_POINT)
-			bodies[i]['radius'] = int(10 / numpy.sqrt(Range) * 1120)
+			bodies[i]['radius'] = int(10 / sqrt(Range) * 1120)
 			color = (	255*abs(cos(100000 / Range)), 
 						0,
 						255*abs(cos(100000 / Range))
 					)
 
-		qs(bodies, velocity) 			# Сортировка по очереди прорисовки(по расстоянию)
+		#qs(bodies, velocity) 			# Сортировка по очереди прорисовки(по расстоянию)
 
 		for i in range(quantity): #Отрисовка
 			#pygame.draw.line(win, (255,255,255), (bodies[0]['x'], bodies[0]['y']), (bodies[i]['x'], bodies[i]['y']))
 			putPoint(win, bodies[i], color)
-			pygame.draw.circle(
-				win, 
-				0, 
-				(round(bodies[i]['x']), round(bodies[i]['y'])),
-				bodies[i]['radius'], 0)
-			pygame.draw.circle(
-				win, 
-				color, 
-				(round(bodies[i]['x']), round(bodies[i]['y'])),
-				bodies[i]['radius'], 1)
-			#if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
-				#points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
-				#pygame.draw.polygon(win, (255,255,255), points, 1)
+			#pygame.draw.circle(
+			#	win, 
+			#	0, 
+			#	(round(bodies[i]['x']), round(bodies[i]['y'])),
+			#	bodies[i]['radius'], 0)
+			#pygame.draw.circle(
+			#	win, 
+			#	color, 
+			#	(round(bodies[i]['x']), round(bodies[i]['y'])),
+			#	bodies[i]['radius'], 1)
+			if (i>0) and (i % 25 == 0) and (i + 2 < quantity):
+				points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
+				pygame.draw.polygon(win, (255,255,255), points, 1)
 
 		display.flip()
 		
