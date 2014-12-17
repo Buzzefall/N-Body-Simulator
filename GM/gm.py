@@ -159,19 +159,19 @@ def apply_forces(bodies):
 		
 	return 0
 def generate_bodies(place, area, body_amount):
-	delta = 200
+	delta = 50
 	bodies = []
 	for i in range(body_amount):
 		random.seed(i)
-		radiusX = (randrange(2*area) - area)*0.1
-		radiusY = (randrange(2*area) - area)*0.1
-		radiusZ = (randrange(2*area) - area)*0.1
+		radiusX = (randrange(2*area) - area)*0.0001
+		radiusY = (randrange(2*area) - area)*0.0001
+		radiusZ = (randrange(2*area) - area)*0.0001
 		if i > (body_amount - body_amount/4):
 			shift = (-delta, 0)
 			
-		elif i > (body_amount - 2*body_amount/4):
+		elif i >= (body_amount - 2*body_amount/4):
 			shift = (delta, 0)
-		elif i > (body_amount - 3*body_amount/4):
+		elif i >= (body_amount - 3*body_amount/4):
 			shift = (0, -delta)
 
 		else:
@@ -189,7 +189,7 @@ def generate_bodies(place, area, body_amount):
 
 SUPERMASS = 25
 Limiter = 8**sqrt(SUPERMASS)
-AMOUNT = 75
+AMOUNT = 72
 
 bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
 apply_forces(bodies)
