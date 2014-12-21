@@ -25,7 +25,7 @@ BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
-DELTA = 10**(-5.0)
+DELTA = 10**(-6.0)
 
 def rangeS(a, b):
 	return sqrt((a['x']-b['x'])**2 + (a['y']-b['y'])**2 + (a['z']-b['z'])**2)
@@ -56,7 +56,8 @@ def apply_forces(bodies):
 	bodies[0]['radius'] = round(bodies[0]['radius']*1.2)
 
 	time = 0
-	color = (255, 0, 255)
+	color = (255, 0, 0)
+	fade_color = (color[0]//1.75, 0, 0)
 	win.fill(0)
 
 	for i in range(1, quantity):
@@ -96,7 +97,8 @@ def apply_forces(bodies):
 		time += 0.05
 		for event in pygame.event.get():
 			if (event.type == KEYDOWN) and (event.key == K_ESCAPE):
-				pygame.quit()
+				display.quit()
+
 		bodies[0]['x'] = pygame.mouse.get_pos()[0]
 		bodies[0]['y'] = pygame.mouse.get_pos()[1]
 		for i in range(quantity - 1):
@@ -131,8 +133,7 @@ def apply_forces(bodies):
 				#pygame.draw.line(win, (255,255,255), (bodies[i]['x'], bodies[i]['y']), (bodies[j]['x'], bodies[j]['y']))
 
 		for i in range(1, quantity):
-			color = (175, 0, 175) 
-			putPoint(win, bodies[i], color)
+			putPoint(win, bodies[i], fade_color)
 
 			velocity[i]['x'] += boost[i]['x']*DELTA   
 			velocity[i]['y'] += boost[i]['y']*DELTA 
@@ -143,53 +144,68 @@ def apply_forces(bodies):
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
 
 			Range = rangeS(bodies[i], VIEW_POINT)
-			bodies[i]['radius'] = 15000 // sqrt(Range)
+			bodies[i]['radius'] = 500 // sqrt(Range)
 			
-			color = (255, 0, 255)
 			putPoint(win, bodies[i], color)
+
+			#if (i>0) and (i % 15 == 0) and (i + 2 < quantity):
+			#	points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
+			#	pygame.draw.polygon(win, (255,255,255), points, 1)
+
+			#pygame.draw.line(win, (255,255,255), (bodies[i]['x'], bodies[i]['y']), (bodies[0]['x'], bodies[0]['y']))
 			
 
-		#qs(bodies, velocity) 					# Сортировка по очереди прорисовки(по расстоянию)
 		putPoint(win, bodies[0], color)
+		#qs(bodies, velocity) 					# Сортировка по очереди прорисовки(по расстоянию)
+		#for i in range(quantity):
+			#pygame.draw.circle(
+				#win, 
+				#0, 
+				#(round(bodies[i]['x']), round(bodies[i]['y'])),
+				#round(bodies[i]['radius']), 0)
+			#pygame.draw.circle(
+				#win, 
+				#color, 
+				#(round(bodies[i]['x']), round(bodies[i]['y'])),
+				#round(bodies[i]['radius']), 1)
 		
 		#points = [(bodies[j+1]['x'], bodies[j+1]['y']) for j in range(1, quantity-1)]
 		#pygame.draw.polygon(win, (255,255,255), points, 1)
+
+
 		
 		display.flip()
 		
 	return 0
 def generate_bodies(place, area, body_amount):
-	delta = 50
+	delta = 0
 	bodies = []
 	for i in range(body_amount):
 		random.seed(i)
-		radiusX = (randrange(2*area) - area)*0.0001
-		radiusY = (randrange(2*area) - area)*0.0001
-		radiusZ = (randrange(2*area) - area)*0.0001
-		if i > (body_amount - body_amount/4):
-			shift = (-delta, 0)
-			
-		elif i >= (body_amount - 2*body_amount/4):
+		radiusXY = 	(randrange(2*area) - area)*0.05
+		radiusZ = 	(randrange(2*area) - area)*0.05
+		if (i <= body_amount/4):
 			shift = (delta, 0)
-		elif i >= (body_amount - 3*body_amount/4):
+		elif (i <= 2*body_amount/4):
+			shift = (-delta, 0)
+		elif (i <= 3*body_amount/4):
 			shift = (0, -delta)
-
 		else:
 			shift = (0, delta)
 		bodies.append	(
 							{															
-							'x': place[0] + shift[0] + radiusX*cos(pi/AMOUNT * i),
-							'y': place[1] + shift[1] + radiusY*sin(pi/AMOUNT * i), 		
+							'x': place[0] + radiusXY*cos(pi/AMOUNT * i) + shift[0],
+							'y': place[1] + radiusXY*sin(pi/AMOUNT * i) + shift[1], 		
 							'z': place[0] + radiusZ*sin(pi/AMOUNT * i), 		
-							'mass': randrange(10**(SUPERMASS//1.5), 10**(SUPERMASS-3)),
+							'mass': randrange(10**(SUPERMASS//2), 10**(SUPERMASS-5)), #10**(SUPERMASS-4),
 							'radius': 10
 							}
 						)
 	return bodies
 
-SUPERMASS = 25
+SUPERMASS = 28
 Limiter = 8**sqrt(SUPERMASS)
-AMOUNT = 72
+AMOUNT = 75
 
 bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
 apply_forces(bodies)

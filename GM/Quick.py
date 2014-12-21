@@ -12,7 +12,7 @@ def part(lst, deps, left, right):
     pivot = lst[left]['radius']
 
     for j in range(left+1, right+1):
-        if lst[j]['radius'] < pivot:
+        if lst[j]['radius'] + 2 < pivot:
             
             lst[i]['x'], lst[j]['x'] = lst[j]['x'], lst[i]['x']
             lst[i]['y'], lst[j]['y'] = lst[j]['y'], lst[i]['y']
