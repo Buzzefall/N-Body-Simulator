@@ -42,8 +42,8 @@ class Image(Point):
 class Body(Image):
 	def __init__(self, point, color):
 		super().__init__(point, color)
-		self.velocity = 0
-		self.accel = 0
+		self.velocity = Point(0,0,0)
+		self.accel = Point(0,0,0)
 		self.mass = randrange(10**(SUPERMASS//2), 10**(SUPERMASS-5)), #10**(SUPERMASS-4)
 		self.radius = 10
 
@@ -65,6 +65,7 @@ class Simulator:
 		print("Simulator has been constructed and initialized!")
 
 	def apply_forces(self):
+
 		for i in range(self.quantity - 1):
 			for j in range (i+1, self.quantity):
 				R['x'] = (self.bodies[i].x - self.bodies[j].x)	# Радиус-векторы частиц
@@ -83,7 +84,17 @@ class Simulator:
 				self.bodies[j].accel.x -= -G * accel_ij[1] * R['x'] 
 				self.bodies[j].accel.y -= -G * accel_ij[1] * R['y']
 				self.bodies[j].accel.z -= -G * accel_ij[1] * R['z']
+	def move(self):
+		for i in range(self.quantity):
+			
+			self.bodies[i].velocity.x += self.bodies[i].accel.x*DELTA
+			self.bodies[i].velocity.y += self.bodies[i].accel.y*DELTA
+			self.bodies[i].velocity.z += self.bodies[i].accel.z*DELTA
 
+			self.bodies[i].x += self.bodies[i].velocity.x*DELTA
+			self.bodies[i].y += self.bodies[i].velocity.y*DELTA
+			self.bodies[i].z += self.bodies[i].velocity.z*DELTA
+			
 				
 		
 

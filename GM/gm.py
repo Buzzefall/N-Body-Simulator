@@ -7,7 +7,7 @@ from Quick import *
 
 from random import randrange, randint
 from pygame.locals import *
-from math import sqrt, cos, sin, tan, pi, log, acos, asin, atan
+from math import pi, sqrt, log, exp, cos, sin, tan
 
 WIN_WIDTH, WIN_HEIGTH = 1920, 1080
 
@@ -25,20 +25,36 @@ BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
 G = 6.67*10**(-11)
-DELTA = 10**(-6.0)
+DELTA = 10**(-6.25)
+class Image:
+	def __init__(self, x, y, color):
+		self.x, self.y = x, y
+		self.precolor = color
+		self.lifetime = 100
+
+	def reduce(self):
+		if (self.lifetime == 90):
+			return 0
+		else:
+			self.lifetime -= 1
+			self.color = (self.lifetime, 0, 0)
+			return 1
+
+def gaussian_blur():
+	pass
 
 def rangeS(a, b):
-	return sqrt((a['x']-b['x'])**2 + (a['y']-b['y'])**2 + (a['z']-b['z'])**2)
+	return sqrt ( (a['x']-b['x'])**2 + (a['y']-b['y'])**2 + (a['z']-b['z'])**2 ) 
 
 def putPoint(window, point, color):
-	window.set_at( (round(point['x']), round(point['y'])), color )
+	window.set_at( (round(point[0]), round(point[1])), color )
 
-	window.set_at( (round(point['x']) +1, round(point['y']) +2), color )
-	window.set_at( (round(point['x']) -1, round(point['y']) +2), color )
-	window.set_at( (round(point['x']) -1, round(point['y']) -2), color )
-	window.set_at( (round(point['x']) +1, round(point['y']) -2), color )
-	window.set_at( (round(point['x']) +2, round(point['y'])), color )
-	window.set_at( (round(point['x']) -2, round(point['y'])), color )
+	window.set_at( (round(point[0]) +1, round(point[1]) +2), color )
+	window.set_at( (round(point[0]) -1, round(point[1]) +2), color )
+	window.set_at( (round(point[0]) -1, round(point[1]) -2), color )
+	window.set_at( (round(point[0]) +1, round(point[1]) -2), color )
+	window.set_at( (round(point[0]) +2, round(point[1])), color )
+	window.set_at( (round(point[0]) -2, round(point[1])), color )
 
 def apply_forces(bodies):
 	quantity = len(bodies)
@@ -49,8 +65,7 @@ def apply_forces(bodies):
 				{'x': 0, 'y': 0, 'z': 0 }
 				for i in range(quantity) ] )
 	boost = [{'x': 0, 'y': 0, 'z': 0} for i in range(quantity)]
-
-	center_mass = 10**18
+	fadings = []
 
 	bodies[0]['mass'] = 10**SUPERMASS
 	bodies[0]['radius'] = round(bodies[0]['radius']*1.2)
@@ -108,7 +123,7 @@ def apply_forces(bodies):
 				R['y'] = (bodies[i]['y'] - bodies[j]['y']) 	
 				R['z'] = (bodies[i]['z'] - bodies[j]['z'])
 
-				RangeFactor = ( R['x']**2 + R['y']**2 + R['z']**2 + Limiter )**(-1.5)
+				RangeFactor = (R['x']**2 + R['y']**2 + R['z']**2 + Limiter)**(-1.5)
 
 				accel_ij[0] = RangeFactor * bodies[j]['mass']
 				accel_ij[1] = RangeFactor * bodies[i]['mass']
@@ -121,20 +136,25 @@ def apply_forces(bodies):
 				boost[j]['y'] -= -G * accel_ij[1] * R['y']
 				boost[j]['z'] -= -G * accel_ij[1] * R['z']
  
-															# Сверхмассивное тело в центре
-				#r2 = rangeS(bodies[i], CENTER)
-				#RangeFactor = 1/r2
-				#temp_force = -G*bodies[i]['mass']*center_mass * RangeFactor
-				#cosY = (bodies[i]['y'] - CENTER['y']) / sqrt(RangeFactor) 
-				#cosX = (bodies[i]['x'] - CENTER['x']) / sqrt(RangeFactor) 
-				#boost[i]['x'] 	+= temp_force * cosX / bodies[i]['mass']
-				#boost[i]['y'] 	+= temp_force * cosY / bodies[i]['mass']
-				
 				#pygame.draw.line(win, (255,255,255), (bodies[i]['x'], bodies[i]['y']), (bodies[j]['x'], bodies[j]['y']))
+		
+										# Затухающие следы частиц																		
+		for i in range(1, quantity):
+			fadings.append( Image(bodies[i]['x'], bodies[i]['y'], color) )
+
+		iterations = len(fadings)
+		toDel = []
+
+		for k in range(iterations):
+			if fadings[k].reduce():
+				putPoint(win, (fadings[k].x, fadings[k].y), fadings[k].color)
+			else:
+				toDel.append(k)
+
+		for k in toDel:
+			del fadings[k]
 
 		for i in range(1, quantity):
-			putPoint(win, bodies[i], fade_color)
-
 			velocity[i]['x'] += boost[i]['x']*DELTA   
 			velocity[i]['y'] += boost[i]['y']*DELTA 
 			velocity[i]['z'] += boost[i]['z']*DELTA 
@@ -143,10 +163,10 @@ def apply_forces(bodies):
 			bodies[i]['z'] +=  velocity[i]['z']*DELTA
 			boost[i]['x'], boost[i]['y'], boost[i]['z'] = 0, 0, 0
 
-			Range = rangeS(bodies[i], VIEW_POINT)
-			bodies[i]['radius'] = 500 // sqrt(Range)
+			#Range = rangeS(bodies[i], VIEW_POINT)
+			#bodies[i]['radius'] = 500 // sqrt(Range)
 			
-			putPoint(win, bodies[i], color)
+			putPoint(win, (bodies[i]['x'], bodies[i]['y']), color)
 
 			#if (i>0) and (i % 15 == 0) and (i + 2 < quantity):
 			#	points = [(bodies[i+j]['x'], bodies[i+j]['y']) for j in range(3)]
@@ -154,21 +174,22 @@ def apply_forces(bodies):
 
 			#pygame.draw.line(win, (255,255,255), (bodies[i]['x'], bodies[i]['y']), (bodies[0]['x'], bodies[0]['y']))
 			
+		putPoint(win, (bodies[0]['x'], bodies[0]['y']), color)
 
-		putPoint(win, bodies[0], color)
 		#qs(bodies, velocity) 					# Сортировка по очереди прорисовки(по расстоянию)
-		#for i in range(quantity):
-			#pygame.draw.circle(
-				#win, 
-				#0, 
-				#(round(bodies[i]['x']), round(bodies[i]['y'])),
-				#round(bodies[i]['radius']), 0)
-			#pygame.draw.circle(
-				#win, 
-				#color, 
-				#(round(bodies[i]['x']), round(bodies[i]['y'])),
-				#round(bodies[i]['radius']), 1)
-		
+		"""
+		for i in range(quantity):
+			pygame.draw.circle(
+				win, 
+				0, 
+				(round(bodies[i]['x']), round(bodies[i]['y'])),
+				round(bodies[i]['radius']), 0)
+			pygame.draw.circle(
+				win, 
+				color, 
+				(round(bodies[i]['x']), round(bodies[i]['y'])),
+				round(bodies[i]['radius']), 1)
+		"""
 		#points = [(bodies[j+1]['x'], bodies[j+1]['y']) for j in range(1, quantity-1)]
 		#pygame.draw.polygon(win, (255,255,255), points, 1)
 
