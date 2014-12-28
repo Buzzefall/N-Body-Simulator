@@ -30,13 +30,13 @@ class Image:
 	def __init__(self, x, y, color):
 		self.x, self.y = x, y
 		self.precolor = color
-		self.lifetime = 100
+		self.lifetime = 110
 
 	def reduce(self):
-		if (self.lifetime == 90):
+		if (self.lifetime <= 10):
 			return 0
 		else:
-			self.lifetime -= 1
+			self.lifetime -= 10
 			self.color = (self.lifetime, 0, 0)
 			return 1
 
