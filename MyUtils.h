@@ -69,6 +69,11 @@ namespace My
 			left = other.left;
 			right = other.right;
 			token = Token(other.token);
+
+			other.left = nullptr;
+			other.right = nullptr;
+			other.~Node();
+		
 			return *this;
 		}
 
@@ -96,6 +101,8 @@ namespace My
 	class ParseTree
 	{
 	private:
+		int _amount = 1;
+		int _depth = 0;
 		Node* root		= new Node;
 		
 		int lowest_priority(string in) {
@@ -166,6 +173,7 @@ namespace My
 				char* temp = nullptr;
 				if (entry != nullptr) 
 				{
+					_amount += 2;
 					entry->token = Token(in[lowest]);
 					entry->left = new Node;
 					entry->right = new Node;
@@ -239,7 +247,9 @@ namespace My
 
 		//replace powers by multiplication:
 		//from x^a to x*x*x*....*x representation
-/*		void open_powers(string& in)
+
+/*		
+		void open_powers(string& in)
 		{
 			int border = 0;
 			for (int i = in.size() - 1; i >= 0; i--)
@@ -269,6 +279,7 @@ namespace My
 			}
 		}
 */
+		
 		//void renew(string in)
 		//{
 		//	delete root;
@@ -282,10 +293,110 @@ namespace My
 
 		//}
 
-		void fold() // Свертка выражений
+		void simplify(Node* entry, int level) // Свертка выражений
 		{
+			if (entry == nullptr || entry->left == nullptr ||
+				entry->right == nullptr)
+				return;
+			
+			bool left = false;
+			bool right = false;
 
+
+			if (entry->left->token.symbol() == '0') left = true;
+			if (entry->right->token.symbol() == '0') right = true;
+
+			if (left || right) 
+			{
+				if (entry->token.symbol() == '*' ||
+					(entry->token.symbol() == '/') && 
+					(entry->right->token.symbol() != '0')
+				   ) 
+				{
+					delete entry->left;
+					delete entry->right;
+					entry->left = nullptr;
+					entry->right = nullptr;
+					entry->token = Token('0');
+				}
+
+				if (entry->token.symbol() == '+' ||
+					entry->token.symbol() == '-')
+				{
+					if (right) 
+					{
+						delete entry->right;
+						*entry = *entry->left;
+					}
+
+					else 
+
+					{
+						if (entry->token.symbol() == '-')
+							entry->left->token = Token(' ');
+						else {
+							delete entry->left;
+							*entry = *entry->right;
+						}
+					}
+				}
+
+				return;
+			}
+
+			left = right = false;
+
+			if (entry->left->token.symbol() == '1') left = true;
+			if (entry->right->token.symbol() == '1') right = true;
+
+			if (left || right)
+			{
+				if (entry->token.symbol() == '*' ||
+					(entry->token.symbol() == '/') &&
+					(entry->right->token.symbol() == '1')
+					)
+				{
+					if (right)
+					{
+						delete entry->right;
+						*entry = *entry->left;
+					}
+
+					else
+
+					{
+						delete entry->left;
+						*entry = *entry->right;
+					}
+				}
+			}
+
+/*
+			left = right = false;
+
+			if (entry->left->token.type() == Power) left = true;
+			if (entry->right->token.type() == Num) right = true;
+			
+			if (entry->token.symbol() == '^' && left && right)
+			{
+				entry->left->right->token = Token
+					(
+					(char)
+						entry->left->right->token.symbol() +
+						entry->right->token.symbol() - '0'
+					);
+
+				delete entry->right;
+				*entry = *entry->left;
+			}
+*/
+
+			simplify(entry->left, -1);
+			simplify(entry->right, -1);
+			if (level == 0 && level < _depth) 
+				simplify(entry, ++level);
 		}
+
 	public:
 		ParseTree(string in)
 		{
@@ -294,17 +405,13 @@ namespace My
 			//open_powers(in);
 
 			Parse(in, root);
+			_depth = (int) log2(_amount);
 		}
 
 		void differentiate(Node* entry = nullptr)
 		{
 			if (entry == nullptr) entry = root;
-
-
 			
-			
-			/*Node* minus;
-			Node* subtr;*/
 			switch (entry->token.type()) {
 
 			case(Num) :
@@ -324,9 +431,9 @@ namespace My
 			Node* minus;
 			Node* mult1;
 			Node* mult2;
-			Node* mult;
 
-			switch (entry->token.symbol()) {
+			switch (entry->token.symbol()) 
+			{
 
 			case('^') :
 
@@ -351,8 +458,8 @@ namespace My
 						power = new Node(entry);
 						power->right->token = Token(char(ch) - 1);
 
-						mult1->left = new Node(entry->right->token.symbol());
-						mult1->right = power;
+						mult1->left = power;
+						mult1->right = new Node(entry->right->token.symbol());
 					}
 
 					mult2->left = mult1;
@@ -404,16 +511,19 @@ namespace My
 
 				mult1->left = new Node(entry->left);
 				mult2->left = new Node(entry->left);
-				//          ...
-				//		    (-) minus
-				//		   /	\
-				//        /		 \
-				//       /		  \
-				//      /          \
-				//    (*)  mult1   (*)  mult2
-				//   /   \		  /   \
-				//  /     \	     /     \
-				// f'(x)  g(x) f(x)    g'(x)
+				//				(/) division
+				//				/ \
+				//			   /   \
+				//            /		\
+				//	  minus (-)     (^) power
+				//		   /   \    /  \
+				//        /		\  g(x) (2)
+				//       /	     \
+				//      /         \
+				//    (*)  mult1  (*)  mult2
+				//   /   \		  /  \
+				//  /     \	     /    \
+				// f'(x)  g(x) f(x)   g'(x)
 				mult1->right = new Node(entry->right);
 				mult2->right = new Node(entry->right);
 
@@ -436,7 +546,10 @@ namespace My
 
 				break;
 
-			case('*'):
+			case('*') :
+				
+				_amount *= 2;
+				_depth = (int)log2(_amount);
 
 				plus = new Node('+');
 				mult1 = new Node('*');
@@ -459,7 +572,7 @@ namespace My
 				mult1->right = new Node(entry->right);
 				mult2->right = new Node(entry->right);
 
-				//Clean mem
+				//Clean mem, OK
 				delete entry->left;
 				delete entry->right;
 				*entry = *plus;
@@ -468,7 +581,13 @@ namespace My
 				plus->right = nullptr;
 				delete plus;
 
-				differentiate(mult1->left);
+				/*if (mult1->left->token.type() == Num) {
+					delete entry->left;
+					*entry = *entry->right;
+				}
+				else */
+					differentiate(mult1->left);
+
 				differentiate(mult2->right);
 
 				break;
@@ -479,13 +598,17 @@ namespace My
 
 				break;
 
-			}
+			} // switch.end
+
+			simplify(root, 0);
 
 		}
 		
 
-		void print(Node* entry = nullptr)
+		string print(Node* entry = nullptr)
 		{
+			string expr;
+
 			if (entry == nullptr) entry = root;
 
 			bool lbrackets = false;
@@ -517,23 +640,55 @@ namespace My
 
 			if (entry->left != nullptr) 
 			{
-				if (lbrackets) cout << '(';
-				print(entry->left);
-				if (lbrackets) cout << ')';
+				if (lbrackets)  {
+					cout << '(';
+					expr += '(';
+				}
+
+				expr += print(entry->left);
+
+				if (lbrackets) {
+					cout << ')';
+					expr += ')';
+				}
 			}
 			
 			cout << entry->token.symbol(); _sleep(10);
+			expr += entry->token.symbol();
 
 			if (entry->right != nullptr) 
 			{
-				if (rbrackets) cout << '(';
-				print(entry->right);
-				if (rbrackets) cout << ')';
+				if (rbrackets)  {
+					cout << '(';
+					expr += '(';
+				}
+
+				expr += print(entry->right);
+
+				if (rbrackets)  {
+					cout << ')';
+					expr += ')';
+				}
 			}
+
+			return expr;
 
 		}
 	};
 
 
 
+
+
+	/*class Expression
+	{
+	private:
+		Node* expr = nullptr;
+	public:
+		Expression() { }
+		virtual void diff() = 0;
+
+	};*/
+
+	
 }
