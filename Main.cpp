@@ -8,8 +8,16 @@ int main()
 {
 	string s;
 
-	
-	
+
+	//Try: d/dx ((1+2*x^3)*x)^3/x == (3*((1+2*x^3)*x)^2*(2*3*x^2*x+1+2*x^3)*x - ((1+2*x^3)*x)^3)/x^2
+	{
+		ParseTree parser("((1+2*x^3)*x)^3/x");
+		parser.print();
+		cout << endl << endl;
+		parser.differentiate();
+		parser.print();
+	}
+
 	while (cin >> s)
 	{
 		try {
