@@ -24,19 +24,19 @@ RED = (0xFF, 0, 0)
 BLUE = (0, 0, 0xFF)
 GREEN = (0, 0xFF, 0)
 
-G = 6.67*10**(-11)
-DELTA = 10**(-6.25)
+G = 6.67*10**(-11.5)
+DELTA = 10**(-6.15)
 class Image:
 	def __init__(self, x, y, color):
 		self.x, self.y = x, y
 		self.precolor = color
-		self.lifetime = 110
+		self.lifetime = 175
 
 	def reduce(self):
-		if (self.lifetime <= 10):
+		if (self.lifetime <= 0):
 			return 0
 		else:
-			self.lifetime -= 10
+			self.lifetime -= 25
 			self.color = (self.lifetime, 0, 0)
 			return 1
 
@@ -72,7 +72,6 @@ def apply_forces(bodies):
 
 	time = 0
 	color = (255, 0, 0)
-	fade_color = (color[0]//1.75, 0, 0)
 	win.fill(0)
 
 	for i in range(1, quantity):
@@ -139,20 +138,20 @@ def apply_forces(bodies):
 				#pygame.draw.line(win, (255,255,255), (bodies[i]['x'], bodies[i]['y']), (bodies[j]['x'], bodies[j]['y']))
 		
 										# Затухающие следы частиц																		
-		for i in range(1, quantity):
-			fadings.append( Image(bodies[i]['x'], bodies[i]['y'], color) )
-
-		iterations = len(fadings)
-		toDel = []
-
-		for k in range(iterations):
-			if fadings[k].reduce():
-				putPoint(win, (fadings[k].x, fadings[k].y), fadings[k].color)
-			else:
-				toDel.append(k)
-
-		for k in toDel:
-			del fadings[k]
+		#for i in range(1, quantity):
+                #   	fadings.append( Image(bodies[i]['x'], bodies[i]['y'], color) )
+                #
+		#iterations = len(fadings)
+		#toDel = []
+                #
+		#for k in range(iterations):
+		#	if fadings[k].reduce():
+		#		putPoint(win, (fadings[k].x, fadings[k].y), fadings[k].color)
+		#	else:
+		#		toDel.append(k)
+                #
+		#for k in toDel:
+		#	del fadings[k]
 
 		for i in range(1, quantity):
 			velocity[i]['x'] += boost[i]['x']*DELTA   
@@ -203,8 +202,8 @@ def generate_bodies(place, area, body_amount):
 	bodies = []
 	for i in range(body_amount):
 		random.seed(i)
-		radiusXY = 	(randrange(2*area) - area)*0.05
-		radiusZ = 	(randrange(2*area) - area)*0.05
+		radiusXY = 	(randrange(2*area) - area)*0.55
+		radiusZ = 	(randrange(2*area) - area)*0.55
 		if (i <= body_amount/4):
 			shift = (delta, 0)
 		elif (i <= 2*body_amount/4):
@@ -226,10 +225,7 @@ def generate_bodies(place, area, body_amount):
 
 SUPERMASS = 28
 Limiter = 8**sqrt(SUPERMASS)
-AMOUNT = 75
+AMOUNT = 70
 
 bodies = generate_bodies( (WIN_WIDTH/2, WIN_HEIGTH/2), WIN_HEIGTH/2, AMOUNT)
 apply_forces(bodies)
-
-
-
